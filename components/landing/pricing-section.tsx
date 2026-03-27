@@ -1,178 +1,99 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Check } from 'lucide-react'
-import { motion } from 'framer-motion'
+
+const plans = [
+  {
+    id: 'DEMO',
+    name: 'Gratis',
+    subtitle: 'Para empezar sin friccion',
+    features: ['1 sucursal', 'Agenda online', 'Calendario', 'Clientes', 'Centro de cuentas'],
+    cta: 'Empezar gratis',
+    href: '/login?plan=DEMO',
+    highlighted: false,
+  },
+  {
+    id: 'PAID_FULL',
+    name: 'Profesional',
+    subtitle: 'Para crecer en serio',
+    features: [
+      'Todo lo del plan gratis',
+      'Lead Finder con IA',
+      'Dashboard completo',
+      'Puntos + recompensas',
+      'Escala por sucursal',
+    ],
+    cta: 'Quiero plan profesional',
+    href: '/login?plan=PAID_FULL',
+    highlighted: true,
+  },
+]
 
 export function PricingSection() {
-  const plans = [
-    {
-      name: 'Starter',
-      price: '29.900',
-      period: '/mes',
-      description: 'Para barberías que recién arrancan con reservas online',
-      features: [
-        'Hasta 200 reservas/mes',
-        '1 sucursal',
-        'Hasta 3 barberos',
-        'Recordatorios WhatsApp',
-        'Página de reservas personalizada',
-        'Soporte por email',
-      ],
-      cta: 'Empezar gratis',
-      highlighted: false,
-    },
-    {
-      name: 'Pro',
-      price: '54.900',
-      period: '/mes',
-      description: 'Para barberías que quieren crecer y profesionalizarse',
-      features: [
-        'Reservas ilimitadas',
-        'Hasta 3 sucursales',
-        'Barberos ilimitados',
-        'Recordatorios + Reactivación',
-        'Dashboard de métricas',
-        'Lead Finder (encuentra nuevos clientes)',
-        'Sistema de puntos y recompensas',
-        'Soporte prioritario por WhatsApp',
-      ],
-      cta: 'Empezar gratis',
-      highlighted: true,
-    },
-  ]
-
   return (
-    <section className="py-24 md:py-32 bg-muted/30" id="precios">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-balance mb-4">
-            {'Precios transparentes'}
+    <section id="precios" className="bg-white py-24 md:py-32 lg:py-40">
+      <div className="mx-auto w-full max-w-5xl px-5 lg:px-12">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <h2 className="text-balance text-4xl font-bold leading-tight text-[#1A1A1A] sm:text-5xl md:text-6xl">
+            Planes simples
           </h2>
-          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
-            {'Sin permanencia. Cancelá cuando quieras. 14 días de prueba gratis.'}
+          <p className="mt-5 text-lg text-[#1A1A1A]/50">
+            Elegi como arrancar hoy. Despues podes cambiar cuando quieras.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className={`relative rounded-2xl p-8 ${
+        <div className="grid gap-6 md:grid-cols-2">
+          {plans.map((plan) => (
+            <article
+              key={plan.id}
+              className={`relative rounded-[2rem] p-8 md:p-10 ${
                 plan.highlighted
-                  ? 'bg-primary text-primary-foreground shadow-2xl ring-2 ring-primary scale-105'
-                  : 'bg-card border border-border'
+                  ? 'bg-[#1A1A1A] text-white shadow-[0_24px_80px_rgba(0,0,0,0.15)]'
+                  : 'border border-[#F0ECE4] bg-[#FDFCFA]'
               }`}
             >
-              {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                  {'Más popular'}
-                </div>
-              )}
+              {plan.highlighted ? (
+                <span className="inline-flex rounded-full bg-[#E8634A] px-4 py-1.5 text-xs font-semibold text-white">
+                  Recomendado
+                </span>
+              ) : null}
+              <h3 className={`mt-4 text-3xl font-bold ${plan.highlighted ? 'text-white' : 'text-[#1A1A1A]'}`}>
+                {plan.name}
+              </h3>
+              <p className={`mt-2 text-sm ${plan.highlighted ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+                {plan.subtitle}
+              </p>
 
-              <div className="mb-6">
-                <h3 className="text-2xl font-display font-bold mb-2">
-                  {plan.name}
-                </h3>
-                <p
-                  className={`text-sm text-pretty ${
-                    plan.highlighted
-                      ? 'text-primary-foreground/80'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {plan.description}
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold">{'$'}</span>
-                  <span className="text-5xl font-display font-bold">
-                    {plan.price}
-                  </span>
-                  <span
-                    className={`text-lg ${
-                      plan.highlighted
-                        ? 'text-primary-foreground/80'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {plan.period}
-                  </span>
-                </div>
-                <p
-                  className={`text-sm mt-1 ${
-                    plan.highlighted
-                      ? 'text-primary-foreground/70'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {'+ IVA'}
-                </p>
-              </div>
-
-              <Button
-                size="lg"
-                className={`w-full mb-8 ${
-                  plan.highlighted
-                    ? 'bg-background text-foreground hover:bg-background/90'
-                    : ''
-                }`}
-                asChild
-              >
-                <a
-                  href="https://wa.me/5491123401136"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {plan.cta}
-                </a>
-              </Button>
-
-              <ul className="space-y-4">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
+              <ul className="mt-8 space-y-3">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        plan.highlighted
-                          ? 'bg-primary-foreground/20'
-                          : 'bg-primary/10'
+                      className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
+                        plan.highlighted ? 'bg-[#E8634A]' : 'bg-[#E8634A]/10'
                       }`}
                     >
-                      <Check
-                        className={`w-3 h-3 ${
-                          plan.highlighted
-                            ? 'text-primary-foreground'
-                            : 'text-primary'
-                        }`}
-                      />
+                      <Check className={`h-3 w-3 ${plan.highlighted ? 'text-white' : 'text-[#E8634A]'}`} />
                     </div>
-                    <span className="text-sm text-pretty leading-relaxed">
+                    <span className={`text-sm ${plan.highlighted ? 'text-white/70' : 'text-[#1A1A1A]/60'}`}>
                       {feature}
                     </span>
                   </li>
                 ))}
               </ul>
-            </motion.div>
-          ))}
-        </div>
 
-        {/* Additional Info */}
-        <div className="text-center mt-12">
-          <p className="text-sm text-muted-foreground">
-            {'¿Necesitás más de 3 sucursales? '}
-            <a
-              href="https://wa.me/5491123401136"
-              className="text-primary hover:underline font-medium"
-            >
-              {'Hablemos de un plan Enterprise'}
-            </a>
-          </p>
+              <Link
+                href={plan.href}
+                className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-sm font-semibold transition-all ${
+                  plan.highlighted
+                    ? 'bg-[#E8634A] text-white hover:bg-[#D4532E] hover:shadow-[0_8px_24px_rgba(232,99,74,0.3)]'
+                    : 'bg-[#1A1A1A] text-white hover:bg-[#333]'
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </article>
+          ))}
         </div>
       </div>
     </section>

@@ -2,28 +2,167 @@
 
 import React from "react"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Scissors } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { getApiBaseUrl } from '@/lib/api'
+import { clearStoredAuth, getStoredAccessToken, getStoredAuthSession, persistAuthSession, updateStoredMemberships } from '@/lib/auth'
+import { isLandingPlan, type LandingPlan } from '@/lib/onboarding-profile'
+
+type InviteInfo = {
+  valid: boolean
+  tenantId?: string
+  tenantName?: string
+  reason?: 'OK' | 'INVALID' | 'USED' | 'EXPIRED'
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [nextPath, setNextPath] = useState('/app/inicio')
+  const [selectedPlan, setSelectedPlan] = useState<LandingPlan | null>(null)
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [inviteTenantId, setInviteTenantId] = useState<string | null>(null)
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null)
+  const [demoConfirmed, setDemoConfirmed] = useState(false)
+  const [forcedNoAccount, setForcedNoAccount] = useState(false)
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Simulate login - redirect to app
-    router.push('/app/inicio')
+  useEffect(() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const plan = params?.get('plan')
+    const invite = params?.get('invite')
+    const tenantId = params?.get('tenantId')
+    const demoConfirmedParam = params?.get('demoConfirmed')
+    const reason = params?.get('reason')
+    if (reason === 'no-account') {
+      setForcedNoAccount(true)
+      clearStoredAuth()
+    }
+    if (isLandingPlan(plan)) {
+      setSelectedPlan(plan)
+    }
+    if (invite) {
+      setInviteToken(invite)
+    }
+    if (tenantId) {
+      setInviteTenantId(tenantId)
+    }
+    if (demoConfirmedParam === '1') {
+      setDemoConfirmed(true)
+    }
+
+    if (invite) {
+      void loadInvitationInfo(invite).then((info) => setInviteInfo(info))
+    }
+
+    if (getStoredAccessToken() && reason !== 'no-account') {
+      const storedSession = getStoredAuthSession()
+      if (invite && storedSession?.user?.id) {
+        void (async () => {
+          try {
+            const result = await acceptInvitation(invite, storedSession.user.id)
+            if (result?.membership) {
+              const nextMemberships = [
+                result.membership,
+                ...storedSession.memberships.filter((m) => m.tenantId !== result.membership?.tenantId),
+              ]
+              updateStoredMemberships(nextMemberships)
+            }
+            await syncMembershipsFromBackend()
+          } catch {
+            // Ignore invite errors here; UI will show if invalid.
+          } finally {
+            router.replace(buildInviteTarget(tenantId))
+          }
+        })()
+      } else {
+        const hasMembership = Array.isArray(storedSession?.memberships) && storedSession.memberships.length > 0
+        const target = !hasMembership && isLandingPlan(plan) ? buildPreplanOnboardingTarget(plan) : '/app/inicio'
+        router.replace(target)
+      }
+    }
+
+    const next = params?.get('next')
+    if (next && (next.startsWith('/app') || next.startsWith('/pago') || next.startsWith('/planes') || next.startsWith('/onboarding-negocio'))) {
+      setNextPath(next)
+    }
+  }, [router])
+
+  const showDemoIntro = selectedPlan === 'DEMO' && !inviteToken && !demoConfirmed
+
+  const resolveNextPath = () => {
+    if (inviteToken) {
+      return buildInviteTarget(inviteTenantId)
+    }
+
+    if (selectedPlan) {
+      return buildPreplanOnboardingTarget(selectedPlan)
+    }
+
+    return nextPath
   }
 
-  const handleGoogleLogin = () => {
-    // Simulate Google login
-    router.push('/app/inicio')
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+      const response = await fetch(`${getApiBaseUrl()}/auth/staff/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: normalizedEmail, password }),
+      })
+
+      const payload = await response.json().catch(() => ({} as any))
+      if (!response.ok) {
+        throw new Error(mapStaffLoginError(response.status, payload))
+      }
+
+      persistAuthSession(payload)
+      let hasMembership = Array.isArray(payload?.memberships) && payload.memberships.length > 0
+      if (inviteToken && payload?.user?.id) {
+        const result = await acceptInvitation(inviteToken, payload.user.id)
+        if (result?.membership) {
+          const nextMemberships = [
+            result.membership,
+            ...(payload?.memberships ?? []).filter((m: any) => m?.tenantId !== result.membership?.tenantId),
+          ].map((membership: any) => ({
+            membershipId: membership?.membershipId ?? membership?.id ?? '',
+            role: membership?.role ?? '',
+            tenantId: membership?.tenantId ?? membership?.tenant?.id ?? '',
+            tenantSlug: membership?.tenantSlug ?? membership?.tenant?.slug ?? '',
+            tenantName: membership?.tenantName ?? membership?.tenant?.name ?? '',
+          }))
+          updateStoredMemberships(nextMemberships)
+          hasMembership = true
+        }
+        const synced = await syncMembershipsFromBackend()
+        if (synced) {
+          hasMembership = synced.hasMembership
+        }
+      }
+      if (hasMembership) {
+        router.replace('/app/inicio')
+      } else {
+        router.replace(resolveNextPath())
+      }
+      router.refresh()
+    } catch (err: any) {
+      setError(err?.message ?? 'Error iniciando sesión')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -40,11 +179,69 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="text-2xl">Bienvenido de nuevo</CardTitle>
-          <CardDescription>
-            Ingresá a tu cuenta para gestionar tu barbería
-          </CardDescription>
-        </CardHeader>
+        <CardDescription>
+          {showDemoIntro
+            ? 'Antes de empezar, confirmá las condiciones'
+            : inviteToken
+              ? `Iniciá sesión para entrar al equipo ${inviteInfo?.tenantName ?? 'del negocio'}`
+              : 'Ingresá a tu cuenta para gestionar tu barbería'}
+        </CardDescription>
+      </CardHeader>
         <CardContent className="space-y-4">
+          {forcedNoAccount ? (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Tu sesión no tiene un negocio asociado. Iniciá sesión nuevamente o registrate para continuar.
+            </div>
+          ) : null}
+          {showDemoIntro ? (
+            <div className="space-y-4">
+              <div className="rounded-md border bg-muted/30 p-4 text-sm space-y-2">
+                <p className="font-medium">
+                  Plan gratis de Galto
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>El plan gratis permite solo 1 sucursal.</li>
+                  <li>El plan gratis no vence.</li>
+                  <li>Incluye agenda online, calendario, centro de cuentas y clientes.</li>
+                  <li>El resto de los módulos queda deshabilitado hasta pasar a un plan pago.</li>
+                </ul>
+              </div>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  if (typeof window === 'undefined') return
+                  const params = new URLSearchParams(window.location.search)
+                  params.set('plan', 'DEMO')
+                  params.set('demoConfirmed', '1')
+                  router.replace(`/registro?${params.toString()}`)
+                }}
+              >
+                Confirmar y continuar
+              </Button>
+            </div>
+          ) : null}
+
+          {!showDemoIntro ? (
+            <>
+          {inviteToken ? (
+            <div className="rounded-md border bg-muted/30 p-3 text-sm">
+              <p className="font-medium">
+                {inviteInfo?.valid === false
+                  ? 'Esta invitación no está disponible'
+                  : `Invitación al equipo ${inviteInfo?.tenantName ?? ''}`}
+              </p>
+              <p className="text-muted-foreground mt-1">
+                {inviteInfo?.reason === 'EXPIRED'
+                  ? 'El link venció (24 hs). Pedí uno nuevo al dueño del negocio.'
+                  : inviteInfo?.reason === 'USED'
+                  ? 'El link ya fue usado. Pedí uno nuevo al dueño del negocio.'
+                  : inviteInfo?.reason === 'INVALID'
+                  ? 'El link es inválido. Verificá que esté completo.'
+                  : 'Si no tenés cuenta, podés crearla desde este mismo flujo.'}
+              </p>
+            </div>
+          ) : null}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -68,10 +265,14 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Iniciar sesión
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Iniciando...' : 'Iniciar sesión'}
             </Button>
           </form>
+
+          {error && (
+            <p className="text-sm text-destructive text-center">{error}</p>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -86,7 +287,7 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             className="w-full bg-transparent"
-            onClick={handleGoogleLogin}
+            disabled
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -115,8 +316,99 @@ export default function LoginPage() {
               Recuperar acceso
             </a>
           </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            ¿No tenés cuenta?{' '}
+            <Link
+              href={buildRegisterHref(selectedPlan, inviteToken, inviteTenantId, demoConfirmed)}
+              className="text-primary hover:underline"
+            >
+              Crear cuenta
+            </Link>
+          </p>
+            </>
+          ) : null}
         </CardContent>
       </Card>
     </div>
   )
+}
+
+function mapStaffLoginError(status: number, payload: any) {
+  const raw = String(Array.isArray(payload?.message) ? payload.message.join(', ') : payload?.message ?? '').toLowerCase()
+
+  if (raw.includes('usuario no encontrado') || raw.includes('user not found') || raw.includes('email no encontrado')) {
+    return 'No tenemos ese mail logueado, registrate para poder arrancar.'
+  }
+
+  if (
+    raw.includes('contraseña') ||
+    raw.includes('password') ||
+    raw.includes('credenciales') ||
+    raw.includes('invalid credentials') ||
+    status === 401
+  ) {
+    return 'Tu contraseña está incorrecta.'
+  }
+
+  return 'No se pudo iniciar sesión.'
+}
+
+async function loadInvitationInfo(token: string): Promise<InviteInfo | null> {
+  try {
+    const response = await fetch(`/api/cuentas/invitations/info?token=${encodeURIComponent(token)}`)
+    if (!response.ok) return null
+    return (await response.json()) as InviteInfo
+  } catch {
+    return null
+  }
+}
+
+function buildRegisterHref(
+  plan: LandingPlan | null,
+  inviteToken: string | null,
+  inviteTenantId: string | null,
+  demoConfirmed: boolean,
+) {
+  const params = new URLSearchParams()
+  if (plan) params.set('plan', plan)
+  if (plan === 'DEMO' && demoConfirmed) params.set('demoConfirmed', '1')
+  if (inviteToken) params.set('invite', inviteToken)
+  if (inviteTenantId) params.set('tenantId', inviteTenantId)
+  const query = params.toString()
+  return query ? `/registro?${query}` : '/registro'
+}
+
+async function acceptInvitation(token: string, userId: string): Promise<{ membership?: any } | null> {
+  const response = await fetch('/api/cuentas/invitations/accept', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, userId }),
+  })
+
+  const payload = await response.json().catch(() => ({} as any))
+  if (!response.ok) {
+    const message = Array.isArray(payload?.message) ? payload.message.join(', ') : payload?.message
+    throw new Error(message || 'No se pudo aceptar invitación')
+  }
+  return payload ?? null
+}
+
+async function syncMembershipsFromBackend(): Promise<{ hasMembership: boolean } | null> {
+  const response = await fetch('/api/auth/memberships', { cache: 'no-store' })
+  const payload = await response.json().catch(() => ({} as any))
+  if (!response.ok) {
+    return null
+  }
+  const memberships = Array.isArray(payload?.memberships) ? payload.memberships : []
+  updateStoredMemberships(memberships)
+  return { hasMembership: memberships.length > 0 }
+}
+
+function buildInviteTarget(_inviteTenantId: string | null) {
+  return '/app/inicio'
+}
+
+function buildPreplanOnboardingTarget(plan: LandingPlan) {
+  return `/onboarding-negocio?plan=${encodeURIComponent(plan)}`
 }

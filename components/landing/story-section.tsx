@@ -1,150 +1,62 @@
-'use client'
+import { Users, CalendarX2, MessageSquareOff } from 'lucide-react'
 
-import { useEffect, useRef, useState } from 'react'
-import { Calendar, Zap, BarChart3 } from 'lucide-react'
+const painPoints = [
+  {
+    icon: Users,
+    title: 'El cliente no vuelve',
+    text: 'Sin seguimiento real, el cliente se enfria y termina agendando en otro lado.',
+    number: '01',
+  },
+  {
+    icon: CalendarX2,
+    title: 'Agenda con huecos',
+    text: 'Si tenes horarios vacios, estas perdiendo plata todos los dias.',
+    number: '02',
+  },
+  {
+    icon: MessageSquareOff,
+    title: 'Todo cae en WhatsApp manual',
+    text: 'Responder, confirmar y recordar a mano te consume tiempo y energia.',
+    number: '03',
+  },
+]
 
 export function StorySection() {
-  const [activePanel, setActivePanel] = useState(0)
-  const sectionRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return
-
-      const section = sectionRef.current
-      const rect = section.getBoundingClientRect()
-      const sectionHeight = rect.height
-      const viewportHeight = window.innerHeight
-
-      // Calculate how far through the section we've scrolled
-      const scrollProgress = Math.max(
-        0,
-        Math.min(1, (viewportHeight / 2 - rect.top) / (sectionHeight / 2))
-      )
-
-      // Update active panel based on scroll progress
-      if (scrollProgress < 0.33) {
-        setActivePanel(0)
-      } else if (scrollProgress < 0.66) {
-        setActivePanel(1)
-      } else {
-        setActivePanel(2)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    handleScroll() // Initial check
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const panels = [
-    {
-      icon: Calendar,
-      title: 'Tu agenda, siempre llena',
-      description:
-        'Los clientes reservan online 24/7. Vos solo mirás tu calendario y cortás. Sin WhatsApp, sin llamadas perdidas.',
-      color: 'primary',
-    },
-    {
-      icon: Zap,
-      title: 'Cero ausentes',
-      description:
-        'Recordatorios automáticos por WhatsApp 24hs antes. Tus clientes llegan a horario y vos no perdés tiempo ni plata.',
-      color: 'secondary',
-    },
-    {
-      icon: BarChart3,
-      title: 'Más clientes, más ingresos',
-      description:
-        'Reactivá clientes que dejaron de venir. Mirá métricas en tiempo real. Crecé tu negocio con datos, no con intuición.',
-      color: 'accent',
-    },
-  ]
-
   return (
-    <section ref={sectionRef} className="py-24 md:py-32 relative" id="producto">
-      {/* Background Patterns */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className={`absolute top-1/4 left-10 w-64 h-64 rounded-full blur-3xl transition-opacity duration-1000 ${
-            activePanel === 0 ? 'opacity-20' : 'opacity-0'
-          } bg-primary`}
-        />
-        <div
-          className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl transition-opacity duration-1000 ${
-            activePanel === 1 ? 'opacity-20' : 'opacity-0'
-          } bg-secondary`}
-        />
-        <div
-          className={`absolute top-1/4 right-10 w-64 h-64 rounded-full blur-3xl transition-opacity duration-1000 ${
-            activePanel === 2 ? 'opacity-20' : 'opacity-0'
-          } bg-accent`}
-        />
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-balance mb-4">
-            {'Cómo GALTO transforma tu barbería'}
+    <section id="problema" className="bg-[#1A1A1A] py-24 md:py-32 lg:py-40">
+      <div className="mx-auto w-full max-w-7xl px-5 lg:px-12">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-block rounded-full bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#E8634A]">
+            Problema real
+          </span>
+          <h2 className="mt-6 text-balance text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
+            Mas del 50% de tus clientes no vuelve.
           </h2>
-          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
-            {'Automatizá lo aburrido. Enfocate en lo que importa: cortar pelo.'}
+          <p className="mt-5 text-lg leading-relaxed text-white/50 md:text-xl">
+            No es por calidad. Es por falta de sistema. Si nadie los recontacta a tiempo, se pierden reservas y facturacion.
           </p>
         </div>
 
-        {/* Story Panels */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {panels.map((panel, index) => (
-            <div
-              key={index}
-              className={`relative p-8 rounded-2xl border transition-all duration-500 ${
-                activePanel === index
-                  ? 'bg-card shadow-xl scale-105 border-primary'
-                  : 'bg-card/50 border-border scale-100'
-              }`}
+        <div className="mt-16 grid gap-5 md:grid-cols-3">
+          {painPoints.map((item) => (
+            <article
+              key={item.title}
+              className="group rounded-[2rem] border border-white/8 bg-white/5 p-8 transition-all hover:border-[#E8634A]/30 hover:bg-white/8"
             >
-              {/* Icon */}
-              <div
-                className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-colors duration-500 ${
-                  activePanel === index
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-primary/10 text-primary'
-                }`}
-              >
-                <panel.icon className="w-7 h-7" />
+              <span className="text-sm font-bold text-[#E8634A]">{item.number}</span>
+              <div className="mt-4 inline-flex rounded-2xl bg-white/10 p-3 text-white">
+                <item.icon className="h-6 w-6" />
               </div>
-
-              {/* Content */}
-              <h3 className="text-xl font-display font-bold mb-3 text-balance">
-                {panel.title}
-              </h3>
-              <p className="text-muted-foreground text-pretty leading-relaxed">
-                {panel.description}
-              </p>
-
-              {/* Progress Indicator */}
-              <div className="mt-6 flex gap-1.5">
-                {panels.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1 rounded-full flex-1 transition-colors duration-500 ${
-                      i === index
-                        ? 'bg-primary'
-                        : i < activePanel
-                          ? 'bg-primary/30'
-                          : 'bg-border'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+              <h3 className="mt-5 text-xl font-semibold text-white">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/50">{item.text}</p>
+            </article>
           ))}
         </div>
 
-        {/* Scroll Hint */}
-        <div className="text-center mt-12">
-          <p className="text-sm text-muted-foreground">
-            {'Seguí scrolleando para ver más'}
+        <div className="mx-auto mt-12 max-w-2xl rounded-[2rem] border border-[#E8634A]/20 bg-[#E8634A]/8 p-6 text-center md:p-8">
+          <p className="text-sm font-semibold text-[#E8634A]">Impacto directo</p>
+          <p className="mt-2 text-base text-white/70">
+            Cada hueco vacio es dinero que no vuelve. Cada cliente perdido es facturacion futura que desaparece.
           </p>
         </div>
       </div>

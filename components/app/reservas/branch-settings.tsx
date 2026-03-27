@@ -19,7 +19,7 @@ export function BranchSettings({ branchId }: BranchSettingsProps) {
     name: 'Sucursal Centro',
     address: 'Av. Corrientes 1234, CABA',
     phone: '+54 11 1234-5678',
-    openDays: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+    openDays: ['Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
     openTime: '09:00',
     closeTime: '19:00',
     cancellationPolicy: true,
@@ -29,6 +29,26 @@ export function BranchSettings({ branchId }: BranchSettingsProps) {
     depositAmount: 20,
     publicNote: 'Recordá llegar 5 minutos antes de tu turno',
   })
+
+  const hourOptions = Array.from({ length: 25 }, (_, hour) => hour)
+  const minuteOptions = Array.from({ length: 60 }, (_, minute) => minute)
+
+  const splitTime = (value: string) => {
+    const [rawHour, rawMinute] = value.split(':').map(Number)
+    return {
+      hour: Number.isFinite(rawHour) ? rawHour : 0,
+      minute: Number.isFinite(rawMinute) ? rawMinute : 0,
+    }
+  }
+
+  const formatTime = (hour: number, minute: number) => {
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  }
+
+  const openTime = splitTime(settings.openTime)
+  const closeTime = splitTime(settings.closeTime)
+  const openMinuteOptions = openTime.hour === 24 ? [0] : minuteOptions
+  const closeMinuteOptions = closeTime.hour === 24 ? [0] : minuteOptions
 
   return (
     <div className="space-y-6">
@@ -84,21 +104,71 @@ export function BranchSettings({ branchId }: BranchSettingsProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="openTime">Hora de apertura</Label>
-              <Input
-                id="openTime"
-                type="time"
-                value={settings.openTime}
-                onChange={(e) => setSettings({ ...settings, openTime: e.target.value })}
-              />
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={openTime.hour}
+                  onChange={(e) => {
+                    const nextHour = Number(e.target.value)
+                    const nextMinute = nextHour === 24 ? 0 : openTime.minute
+                    setSettings({ ...settings, openTime: formatTime(nextHour, nextMinute) })
+                  }}
+                >
+                  {hourOptions.map((hour) => (
+                    <option key={`open-hour-${hour}`} value={hour}>
+                      {String(hour).padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-muted-foreground text-sm">:</span>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={openTime.minute}
+                  onChange={(e) =>
+                    setSettings({ ...settings, openTime: formatTime(openTime.hour, Number(e.target.value)) })
+                  }
+                >
+                  {openMinuteOptions.map((minute) => (
+                    <option key={`open-minute-${minute}`} value={minute}>
+                      {String(minute).padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="closeTime">Hora de cierre</Label>
-              <Input
-                id="closeTime"
-                type="time"
-                value={settings.closeTime}
-                onChange={(e) => setSettings({ ...settings, closeTime: e.target.value })}
-              />
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={closeTime.hour}
+                  onChange={(e) => {
+                    const nextHour = Number(e.target.value)
+                    const nextMinute = nextHour === 24 ? 0 : closeTime.minute
+                    setSettings({ ...settings, closeTime: formatTime(nextHour, nextMinute) })
+                  }}
+                >
+                  {hourOptions.map((hour) => (
+                    <option key={`close-hour-${hour}`} value={hour}>
+                      {String(hour).padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-muted-foreground text-sm">:</span>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={closeTime.minute}
+                  onChange={(e) =>
+                    setSettings({ ...settings, closeTime: formatTime(closeTime.hour, Number(e.target.value)) })
+                  }
+                >
+                  {closeMinuteOptions.map((minute) => (
+                    <option key={`close-minute-${minute}`} value={minute}>
+                      {String(minute).padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

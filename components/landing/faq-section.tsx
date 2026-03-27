@@ -1,100 +1,60 @@
 'use client'
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+
+const faqs = [
+  {
+    question: 'Galto es solo una agenda?',
+    answer:
+      'No. La agenda es una parte. El foco de Galto es evitar perdida de clientes y recuperar reservas automaticamente.',
+  },
+  {
+    question: 'Que incluye el plan gratis?',
+    answer:
+      'Incluye una sucursal con agenda online, calendario, clientes y centro de cuentas. Sin vencimiento.',
+  },
+  {
+    question: 'Mis clientes tienen que descargar algo?',
+    answer:
+      'No. Reservan desde un link web, directo desde su celular.',
+  },
+  {
+    question: 'Sirve para barberias, peluquerias y centros de estetica?',
+    answer:
+      'Si. Esta pensado para negocios de turnos donde cada hueco vacio impacta en ingresos.',
+  },
+  {
+    question: 'Puedo empezar hoy y configurar rapido?',
+    answer:
+      'Si. La configuracion inicial es simple y esta guiada paso a paso dentro de la app.',
+  },
+]
 
 export function FAQSection() {
-  const faqs = [
-    {
-      question: '¿Cómo funciona el período de prueba?',
-      answer:
-        'Tenés 14 días completamente gratis para probar GALTO. No necesitás tarjeta de crédito para empezar. Si te gusta, elegís un plan. Si no, no pasa nada.',
-    },
-    {
-      question: '¿Mis clientes necesitan descargar una app?',
-      answer:
-        'No. Tus clientes reservan desde su navegador, sin descargar nada. Les mandás un link y listo. Es súper simple.',
-    },
-    {
-      question: '¿Los recordatorios por WhatsApp tienen costo extra?',
-      answer:
-        'No. Los recordatorios automáticos están incluidos en ambos planes. Usamos WhatsApp Business API oficial.',
-    },
-    {
-      question: '¿Puedo cancelar en cualquier momento?',
-      answer:
-        'Sí, sin compromiso. No hay permanencia. Cancelás cuando quieras desde tu panel de control, sin hablar con nadie.',
-    },
-    {
-      question: '¿Qué pasa si supero el límite de reservas?',
-      answer:
-        'En el plan Starter, si superás las 200 reservas, te avisamos para que puedas pasar a Pro. No bloqueamos tu cuenta ni perdés datos.',
-    },
-    {
-      question: '¿Necesito conocimientos técnicos?',
-      answer:
-        'Para nada. Si sabés usar WhatsApp e Instagram, podés usar GALTO. Es tan fácil como usar redes sociales.',
-    },
-    {
-      question: '¿Puedo integrar GALTO con mis redes sociales?',
-      answer:
-        'Sí. Podés poner el link de reservas en tu bio de Instagram, en tu perfil de Facebook, en tus historias, o donde quieras.',
-    },
-    {
-      question: '¿Qué métodos de pago aceptan?',
-      answer:
-        'Aceptamos tarjetas de crédito, débito y transferencias bancarias. También podés pagar por MercadoPago. Todo en pesos argentinos.',
-    },
-  ]
-
   return (
-    <section className="py-24 md:py-32" id="faq">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-balance mb-4">
-            {'Preguntas frecuentes'}
-          </h2>
-          <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
-            {'¿Tenés alguna duda? Acá están las respuestas a las preguntas más comunes'}
-          </p>
+    <section id="faq" className="bg-[#FAF7F2] py-24 md:py-32 lg:py-40">
+      <div className="mx-auto w-full max-w-3xl px-5 lg:px-12">
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl font-bold text-[#1A1A1A] sm:text-5xl">Preguntas frecuentes</h2>
+          <p className="mt-4 text-lg text-[#1A1A1A]/50">Todo lo importante, claro y sin vueltas.</p>
         </div>
 
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="bg-card border border-border rounded-xl px-6 data-[state=open]:shadow-md transition-shadow"
-              >
-                <AccordionTrigger className="text-left hover:no-underline py-5">
-                  <span className="font-semibold text-balance pr-4">
-                    {faq.question}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-pretty leading-relaxed pb-5">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-muted-foreground">
-            {'¿Tenés otra pregunta? '}
-            <a
-              href="https://wa.me/5491123401136"
-              className="text-primary hover:underline font-medium"
+        <Accordion type="single" collapsible className="space-y-3">
+          {faqs.map((faq, index) => (
+            <AccordionItem
+              key={faq.question}
+              value={`item-${index}`}
+              className="rounded-2xl border border-[#F0ECE4] bg-white px-6 shadow-none transition-all data-[state=open]:shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
             >
-              {'Escribinos por WhatsApp'}
-            </a>
-          </p>
-        </div>
+              <AccordionTrigger className="py-5 text-left text-base font-semibold text-[#1A1A1A] hover:no-underline">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 text-sm leading-relaxed text-[#1A1A1A]/50">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </section>
   )

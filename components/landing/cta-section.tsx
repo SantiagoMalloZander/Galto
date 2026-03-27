@@ -1,64 +1,37 @@
-'use client'
-
-import { Button } from '@/components/ui/button'
-import { MessageCircle, Mail } from 'lucide-react'
-import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { ArrowRight, MessageCircle } from 'lucide-react'
 
 export function CTASection() {
   return (
-    <section className="py-24 md:py-32 bg-muted/30">
-      <div className="container mx-auto px-4 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="relative max-w-4xl mx-auto"
-        >
-          {/* Background Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-3xl blur-3xl -z-10" />
+    <section className="bg-[#1A1A1A] py-24 md:py-32 lg:py-40">
+      <div className="mx-auto w-full max-w-4xl px-5 lg:px-12">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-balance text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
+            Si hoy tenes huecos, hoy estas perdiendo plata.
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-white/50 md:text-xl">
+            Activa Galto y empeza a recuperar clientes desde esta semana.
+          </p>
 
-          <div className="bg-card rounded-3xl p-8 md:p-12 border border-border shadow-xl text-center">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-balance mb-4">
-              {'Listo para llenar tu agenda?'}
-            </h2>
-            <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto mb-8">
-              {'Empezá tu prueba gratis de 14 días. Sin tarjeta. Sin compromiso. Solo vos y una agenda llena de clientes.'}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button size="lg" className="text-base font-medium" asChild>
-                <a
-                  href="https://wa.me/5491123401136"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  {'Agendar demo gratis'}
-                </a>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base font-medium"
-                asChild
-              >
-                <a
-                  href="mailto:mzanderconsulting@gmail.com"
-                  className="flex items-center gap-2"
-                >
-                  <Mail className="w-5 h-5" />
-                  {'Escribinos un email'}
-                </a>
-              </Button>
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              {'Respondemos en menos de 2 horas • Lun-Vie 9-18hs'}
-            </p>
+          <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              href="/login?plan=DEMO"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#E8634A] px-8 py-4 text-base font-semibold text-white transition-all hover:bg-[#D4532E] hover:shadow-[0_16px_40px_rgba(232,99,74,0.3)]"
+            >
+              Probar gratis
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+            </Link>
+            <a
+              href="https://wa.me/5491123401136"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/15 px-8 py-4 text-base font-semibold text-white transition-all hover:border-white/30 hover:bg-white/5"
+            >
+              <MessageCircle size={18} />
+              Hablar por WhatsApp
+            </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

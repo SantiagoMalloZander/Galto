@@ -1,124 +1,55 @@
-'use client'
+import { CircleDollarSign, Clock3, UserRoundPlus } from 'lucide-react'
 
-import { TrendingUp, Users, Clock, Sparkles } from 'lucide-react'
-import { motion } from 'framer-motion'
+const benefits = [
+  {
+    icon: UserRoundPlus,
+    title: 'Mas clientes',
+    text: 'Volves a activar clientes que se estaban perdiendo.',
+    metric: '+ reservas en horarios flojos',
+  },
+  {
+    icon: CircleDollarSign,
+    title: 'Mas ingresos',
+    text: 'Tu agenda con menos huecos = mas facturacion mensual.',
+    metric: 'Enfoque directo en rentabilidad',
+  },
+  {
+    icon: Clock3,
+    title: 'Menos trabajo manual',
+    text: 'Menos tiempo en chats repetidos y mas foco en atender.',
+    metric: 'Operacion simple tipo WhatsApp',
+  },
+]
 
 export function ResultsSection() {
-  const stats = [
-    {
-      icon: TrendingUp,
-      value: '+35%',
-      label: 'Aumento promedio en reservas',
-    },
-    {
-      icon: Clock,
-      value: '8hs',
-      label: 'Ahorradas por semana',
-    },
-    {
-      icon: Users,
-      value: '70%',
-      label: 'Menos ausencias',
-    },
-    {
-      icon: Sparkles,
-      value: '4.9/5',
-      label: 'Satisfacción de usuarios',
-    },
-  ]
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Configurá tu barbería',
-      description:
-        'Cargá tus servicios, barberos y horarios. Te lleva 10 minutos.',
-    },
-    {
-      number: '02',
-      title: 'Compartí tu link',
-      description:
-        'Enviá tu página de reservas por WhatsApp, Instagram o ponela en tu bio.',
-    },
-    {
-      number: '03',
-      title: 'Dejá que trabaje solo',
-      description:
-        'GALTO recibe reservas, manda recordatorios y llena tu agenda automáticamente.',
-    },
-  ]
-
   return (
-    <section className="py-24 md:py-32">
-      <div className="container mx-auto px-4 sm:px-6">
-        {/* Stats Grid */}
-        <div className="mb-24">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-balance text-center mb-16">
-            {'Resultados que hablan solos'}
+    <section id="beneficios" className="bg-white py-24 md:py-32 lg:py-40">
+      <div className="mx-auto w-full max-w-7xl px-5 lg:px-12">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <h2 className="text-balance text-4xl font-bold leading-tight text-[#1A1A1A] sm:text-5xl md:text-6xl">
+            Beneficios que impactan en caja
           </h2>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-card rounded-2xl p-6 border border-border text-center"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-6 h-6 text-primary" />
-                </div>
-                <div className="text-3xl font-display font-bold text-primary mb-2">
-                  {stat.value}
-                </div>
-                <p className="text-sm text-muted-foreground text-balance">
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
-          </div>
+          <p className="mt-5 text-lg text-[#1A1A1A]/50 md:text-xl">
+            Menos perdida de clientes, mas turnos confirmados y una operacion mas liviana.
+          </p>
         </div>
 
-        {/* How It Works */}
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-display font-bold text-balance text-center mb-4">
-            {'Empezá en 3 pasos'}
-          </h2>
-          <p className="text-lg text-muted-foreground text-pretty text-center max-w-2xl mx-auto mb-16">
-            {'Sin instalaciones complicadas. Sin capacitación. Lo configurás una vez y funciona para siempre.'}
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-gradient-to-r from-primary/30 to-transparent -translate-y-1/2 z-0" />
-                )}
-
-                <div className="relative bg-card rounded-2xl p-8 border border-border hover:shadow-lg transition-shadow">
-                  <div className="text-5xl font-display font-bold text-primary/20 mb-4">
-                    {step.number}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-balance">
-                    {step.title}
-                  </h3>
-                  <p className="text-muted-foreground text-pretty leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {benefits.map((benefit) => (
+            <article
+              key={benefit.title}
+              className="group rounded-[2rem] border border-[#F0ECE4] bg-[#FDFCFA] p-8 transition-all hover:border-[#E8634A]/20 hover:bg-white hover:shadow-[0_8px_50px_rgba(0,0,0,0.06)]"
+            >
+              <div className="inline-flex rounded-2xl bg-[#E8634A]/8 p-4 text-[#E8634A]">
+                <benefit.icon className="h-7 w-7" />
+              </div>
+              <h3 className="mt-6 text-2xl font-semibold text-[#1A1A1A]">{benefit.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[#1A1A1A]/50">{benefit.text}</p>
+              <div className="mt-6 rounded-full bg-[#FAF7F2] px-4 py-2 text-xs font-semibold text-[#E8634A]">
+                {benefit.metric}
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

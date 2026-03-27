@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   title: 'GALTO - Más reservas. Cero huecos.',
   description: 'Sistema de gestión y crecimiento para barberías y peluquerías en Buenos Aires',
   generator: 'v0.app',
+  icons: {
+    icon: [
+      { url: '/logogalto.ico', type: 'image/x-icon' },
+      { url: '/logogalto.png', type: 'image/png', sizes: '512x512' },
+    ],
+    shortcut: ['/logogalto.ico'],
+    apple: [{ url: '/logogalto.png', sizes: '180x180', type: 'image/png' }],
+  },
 }
 
 export default function RootLayout({
