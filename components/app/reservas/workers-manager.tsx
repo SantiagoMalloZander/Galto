@@ -36,17 +36,41 @@ const initialWorkers: Worker[] = [
     certifications: ['Barbería profesional', 'Colorimetría'],
     services: ['Corte clásico', 'Corte + Barba'],
     schedule: {
-      Lunes: { start: '09:00', end: '18:00' },
-      Martes: { start: '09:00', end: '18:00' },
-      Miércoles: { start: '09:00', end: '18:00' },
-      Jueves: { start: '09:00', end: '18:00' },
-      Viernes: { start: '09:00', end: '18:00' },
+      Martes: { start: '09:00', end: '19:00' },
+      Miércoles: { start: '09:00', end: '19:00' },
+      Jueves: { start: '09:00', end: '19:00' },
+      Viernes: { start: '09:00', end: '19:00' },
+      Sábado: { start: '09:00', end: '19:00' },
+      Domingo: { start: '09:00', end: '19:00' },
     },
   },
 ]
 
 const availableServices = ['Corte clásico', 'Corte + Barba', 'Barba completa', 'Coloración']
 const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const HOUR_OPTIONS = Array.from({ length: 25 }, (_, hour) => hour)
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, minute) => minute)
+const DEFAULT_WORKER_SCHEDULE: Worker['schedule'] = {
+  Martes: { start: '09:00', end: '19:00' },
+  Miércoles: { start: '09:00', end: '19:00' },
+  Jueves: { start: '09:00', end: '19:00' },
+  Viernes: { start: '09:00', end: '19:00' },
+  Sábado: { start: '09:00', end: '19:00' },
+  Domingo: { start: '09:00', end: '19:00' },
+}
+
+function splitTime(value?: string) {
+  if (!value) return { hour: 0, minute: 0 }
+  const [rawHour, rawMinute] = value.split(':').map(Number)
+  return {
+    hour: Number.isFinite(rawHour) ? rawHour : 0,
+    minute: Number.isFinite(rawMinute) ? rawMinute : 0,
+  }
+}
+
+function formatTime(hour: number, minute: number) {
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
 
 export function WorkersManager({ branchId }: WorkersManagerProps) {
   const [workers, setWorkers] = useState<Worker[]>(initialWorkers)
@@ -72,7 +96,7 @@ export function WorkersManager({ branchId }: WorkersManagerProps) {
       bio: '',
       certifications: [],
       services: [],
-      schedule: {},
+      schedule: { ...DEFAULT_WORKER_SCHEDULE },
     })
     setShowDialog(true)
   }
@@ -295,7 +319,7 @@ export function WorkersManager({ branchId }: WorkersManagerProps) {
                             if (e.target.checked) {
                               setFormData({
                                 ...formData,
-                                schedule: { ...current, [day]: { start: '09:00', end: '18:00' } },
+                                schedule: { ...current, [day]: { start: '09:00', end: '19:00' } },
                               })
                             } else {
                               const { [day]: _, ...rest } = current
@@ -307,39 +331,103 @@ export function WorkersManager({ branchId }: WorkersManagerProps) {
                         <span className="text-sm">{day}</span>
                       </label>
                     </div>
-                    {formData.schedule?.[day] && (
-                      <div className="flex gap-2">
-                        <Input
-                          type="time"
-                          value={formData.schedule[day].start}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              schedule: {
-                                ...formData.schedule,
-                                [day]: { ...formData.schedule![day], start: e.target.value },
-                              },
-                            })
-                          }
-                          className="w-32"
-                        />
-                        <span className="text-muted-foreground">a</span>
-                        <Input
-                          type="time"
-                          value={formData.schedule[day].end}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              schedule: {
-                                ...formData.schedule,
-                                [day]: { ...formData.schedule![day], end: e.target.value },
-                              },
-                            })
-                          }
-                          className="w-32"
-                        />
-                      </div>
-                    )}
+                    {formData.schedule?.[day] && (() => {
+                      const start = splitTime(formData.schedule[day].start)
+                      const end = splitTime(formData.schedule[day].end)
+                      const startMinuteOptions = start.hour === 24 ? [0] : MINUTE_OPTIONS
+                      const endMinuteOptions = end.hour === 24 ? [0] : MINUTE_OPTIONS
+                      return (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                            <select
+                              className="h-10 w-20 rounded-md border border-input bg-background px-2 text-sm"
+                              value={start.hour}
+                              onChange={(e) => {
+                                const nextHour = Number(e.target.value)
+                                const nextMinute = nextHour === 24 ? 0 : start.minute
+                                setFormData({
+                                  ...formData,
+                                  schedule: {
+                                    ...formData.schedule,
+                                    [day]: { ...formData.schedule![day], start: formatTime(nextHour, nextMinute) },
+                                  },
+                                })
+                              }}
+                            >
+                              {HOUR_OPTIONS.map((hour) => (
+                                <option key={`start-hour-${day}-${hour}`} value={hour}>
+                                  {String(hour).padStart(2, '0')}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-muted-foreground">:</span>
+                            <select
+                              className="h-10 w-20 rounded-md border border-input bg-background px-2 text-sm"
+                              value={start.minute}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  schedule: {
+                                    ...formData.schedule,
+                                    [day]: { ...formData.schedule![day], start: formatTime(start.hour, Number(e.target.value)) },
+                                  },
+                                })
+                              }}
+                            >
+                              {startMinuteOptions.map((minute) => (
+                                <option key={`start-minute-${day}-${minute}`} value={minute}>
+                                  {String(minute).padStart(2, '0')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <span className="text-muted-foreground">a</span>
+                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                            <select
+                              className="h-10 w-20 rounded-md border border-input bg-background px-2 text-sm"
+                              value={end.hour}
+                              onChange={(e) => {
+                                const nextHour = Number(e.target.value)
+                                const nextMinute = nextHour === 24 ? 0 : end.minute
+                                setFormData({
+                                  ...formData,
+                                  schedule: {
+                                    ...formData.schedule,
+                                    [day]: { ...formData.schedule![day], end: formatTime(nextHour, nextMinute) },
+                                  },
+                                })
+                              }}
+                            >
+                              {HOUR_OPTIONS.map((hour) => (
+                                <option key={`end-hour-${day}-${hour}`} value={hour}>
+                                  {String(hour).padStart(2, '0')}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-muted-foreground">:</span>
+                            <select
+                              className="h-10 w-20 rounded-md border border-input bg-background px-2 text-sm"
+                              value={end.minute}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  schedule: {
+                                    ...formData.schedule,
+                                    [day]: { ...formData.schedule![day], end: formatTime(end.hour, Number(e.target.value)) },
+                                  },
+                                })
+                              }}
+                            >
+                              {endMinuteOptions.map((minute) => (
+                                <option key={`end-minute-${day}-${minute}`} value={minute}>
+                                  {String(minute).padStart(2, '0')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                 ))}
               </div>
